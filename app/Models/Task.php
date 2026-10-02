@@ -93,6 +93,31 @@ class Task extends Model
     }
 
     /**
+     * Query scope: apply the validated list filters (see FilterTasksRequest).
+     *
+     * @param  Builder<Task>  $query
+     * @param  array{search?: string, status?: string, priority?: string}  $filters
+     */
+    public function scopeFilter(Builder $query, array $filters): void
+    {
+        $query->search($filters['search'] ?? null)
+            ->when($filters['status'] ?? null, fn (Builder $query, string $status) => $query->where('status', $status))
+            ->when($filters['priority'] ?? null, fn (Builder $query, string $priority) => $query->where('priority', $priority));
+    }
+
+    /**
+     * Query scope: tasks with a due date first (soonest first), then newest.
+     *
+     * @param  Builder<Task>  $query
+     */
+    public function scopeOrderByDeadline(Builder $query): void
+    {
+        $query->orderByRaw('due_date IS NULL')
+            ->orderBy('due_date')
+            ->latest();
+    }
+
+    /**
      * Query scope: tasks that are past due and not done.
      *
      * @param  Builder<Task>  $query

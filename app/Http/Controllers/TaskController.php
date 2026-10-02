@@ -4,13 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Enums\TaskPriority;
 use App\Enums\TaskStatus;
+use App\Http\Requests\FilterTasksRequest;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
 use App\Models\Task;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -23,24 +22,16 @@ class TaskController extends Controller
     /**
      * GET /tasks: the logged-in user's tasks, with search, filters and pagination.
      */
-    public function index(Request $request): Response
+    public function index(FilterTasksRequest $request): Response
     {
-        $filters = $request->validate([
-            'search' => ['nullable', 'string', 'max:100'],
-            'status' => ['nullable', Rule::enum(TaskStatus::class)],
-            'priority' => ['nullable', Rule::enum(TaskPriority::class)],
-        ]);
+        $filters = $request->filters();
 
         // Starting from $request->user()->tasks() guarantees users only ever see their own tasks
         $tasks = $request->user()->tasks()
-            ->search($filters['search'] ?? null)
-            ->when($filters['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
-            ->when($filters['priority'] ?? null, fn ($query, $priority) => $query->where('priority', $priority))
-            ->orderByRaw('due_date IS NULL') // tasks with a due date first…
-            ->orderBy('due_date')            // …soonest first
-            ->latest()
+            ->filter($filters)
+            ->orderByDeadline()
             ->paginate(10)
-            ->withQueryString();             // keep ?search=…&status=… on pagination links
+            ->withQueryString(); // keep ?search=…&status=… on pagination links
 
         return Inertia::render('tasks/Index', [
             'tasks' => $tasks,
