@@ -1,0 +1,12 @@
+{
+    "recommendations": [
+        "laravel.vscode-laravel",
+        "bmewburn.vscode-intelephense-client",
+        "vue.volar",
+        "bradlc.vscode-tailwindcss",
+        "m1guelpf.better-pest",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "qwtel.sqlite-viewer"
+    ]
+}
