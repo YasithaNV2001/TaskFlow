@@ -163,7 +163,9 @@ return [
     'features' => [
         Features::registration(),
         Features::resetPasswords(),
-        Features::emailVerification(),
+        // Email verification is disabled: TaskFlow users can start right after registering
+        // (App\Models\User no longer implements MustVerifyEmail).
+        // Features::emailVerification(),
         Features::twoFactorAuthentication([
             'confirm' => true,
             'confirmPassword' => true,
